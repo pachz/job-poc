@@ -11,16 +11,22 @@ Vite React app + Convex, with image processing on **Vercel Functions**. No Next.
 
 ## Local development
 
-Use two terminals:
-
 ```bash
-npx convex dev
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) and sign in with `123456`.
+That starts Convex and Vite together. Open [http://localhost:5173](http://localhost:5173) and sign in with `123456`.
 
-`npm run dev` is Vite. The same `/api/*` handlers run locally through a Vite plugin, so you can test the job without Next.js.
+Useful scripts:
+
+- `npm run dev` — Convex + Vite
+- `npm run dev:web` — Vite only (if Convex is already running)
+- `npm run dev:convex` — Convex only
+- `npm run convex:dashboard` — open the Convex dashboard
+- `npm run convex:codegen` — regenerate Convex types
+- `npm run convex:deploy` — production Convex deploy only
+
+The same `/api/*` handlers run locally through a Vite plugin, so you can test the job without Next.js.
 
 Make sure `.env.local` contains:
 
