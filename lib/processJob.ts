@@ -58,7 +58,11 @@ export async function processJob(jobId: Id<"jobs">): Promise<void> {
     pdf.setTitle("Job POC image bundle");
     pdf.setAuthor("job-poc Vercel Function");
     pdf.setProducer("job-poc");
-    const font = await pdf.embedFont(StandardFonts.Helvetica);
+    const font = await pdf.embedFont(StandardFonts.HelveticaBold);
+    const labelSize = Math.round(PNG_SIZE * 0.042);
+    const labelPad = Math.round(PNG_SIZE * 0.035);
+    const boxPadX = Math.round(labelSize * 0.55);
+    const boxPadY = Math.round(labelSize * 0.42);
 
     for (const [index, source] of PNG_SOURCES.entries()) {
       await convex.mutation(api.jobs.markDownloading, {
@@ -80,19 +84,35 @@ export async function processJob(jobId: Id<"jobs">): Promise<void> {
         message: `Embedding PNG ${index + 1}/${PNG_SOURCES.length}`,
       });
       const png = await pdf.embedPng(scaled);
-      const page = pdf.addPage([PNG_SIZE, PNG_SIZE + 36]);
+      const page = pdf.addPage([PNG_SIZE, PNG_SIZE]);
       page.drawImage(png, {
         x: 0,
-        y: 36,
+        y: 0,
         width: PNG_SIZE,
         height: PNG_SIZE,
       });
-      page.drawText(`${source.label} (${PNG_SIZE}x${PNG_SIZE})`, {
-        x: 16,
-        y: 14,
-        size: 10,
+
+      const label = `Asset ${index + 1} and stuff...`;
+      const textWidth = font.widthOfTextAtSize(label, labelSize);
+      const boxWidth = textWidth + boxPadX * 2;
+      const boxHeight = labelSize + boxPadY * 2;
+      const boxX = labelPad;
+      const boxY = labelPad;
+
+      page.drawRectangle({
+        x: boxX,
+        y: boxY,
+        width: boxWidth,
+        height: boxHeight,
+        color: rgb(0.06, 0.08, 0.1),
+        opacity: 0.88,
+      });
+      page.drawText(label, {
+        x: boxX + boxPadX,
+        y: boxY + boxPadY,
+        size: labelSize,
         font,
-        color: rgb(0.15, 0.16, 0.18),
+        color: rgb(0.96, 0.97, 0.94),
       });
     }
 
