@@ -5,7 +5,8 @@
   "functions": {
     "api/**/*.ts": {
       "includeFiles": "{lib,convex/_generated}/**",
-      "maxDuration": 60
+      "maxDuration": 300,
+      "memory": 3008
     }
   }
 }

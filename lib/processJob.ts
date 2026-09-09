@@ -1,9 +1,10 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PNG } from "pngjs";
 import { api } from "../convex/_generated/api.js";
 import type { Id } from "../convex/_generated/dataModel";
 import { getWorkerSecret } from "./auth.js";
 import { getConvexHttpClient } from "./convex.js";
-import { PNG_SOURCES } from "./pngSources.js";
+import { PNG_SIZE, PNG_SOURCES } from "./pngSources.js";
 
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47];
 
@@ -26,40 +27,24 @@ async function downloadPng(url: string): Promise<Uint8Array> {
   return bytes;
 }
 
-async function bundlePdf(
-  images: Array<{ label: string; bytes: Uint8Array }>,
-): Promise<Uint8Array> {
-  const pdf = await PDFDocument.create();
-  pdf.setTitle("Job POC image bundle");
-  pdf.setAuthor("job-poc Vercel Function");
-  pdf.setProducer("job-poc");
+function scalePngToTarget(bytes: Uint8Array, size: number): Uint8Array {
+  const source = PNG.sync.read(Buffer.from(bytes));
+  const dest = new PNG({ width: size, height: size, fill: true });
 
-  const font = await pdf.embedFont(StandardFonts.Helvetica);
-
-  for (const image of images) {
-    const png = await pdf.embedPng(image.bytes);
-    const maxWidth = 720;
-    const scale = png.width > maxWidth ? maxWidth / png.width : 1;
-    const width = png.width * scale;
-    const height = png.height * scale;
-    const page = pdf.addPage([width, height + 36]);
-
-    page.drawImage(png, {
-      x: 0,
-      y: 36,
-      width,
-      height,
-    });
-    page.drawText(image.label, {
-      x: 16,
-      y: 14,
-      size: 10,
-      font,
-      color: rgb(0.15, 0.16, 0.18),
-    });
+  for (let y = 0; y < size; y += 1) {
+    const srcY = Math.min(source.height - 1, Math.floor((y * source.height) / size));
+    for (let x = 0; x < size; x += 1) {
+      const srcX = Math.min(source.width - 1, Math.floor((x * source.width) / size));
+      const srcIdx = (srcY * source.width + srcX) << 2;
+      const dstIdx = (y * size + x) << 2;
+      dest.data[dstIdx] = source.data[srcIdx] ?? 0;
+      dest.data[dstIdx + 1] = source.data[srcIdx + 1] ?? 0;
+      dest.data[dstIdx + 2] = source.data[srcIdx + 2] ?? 0;
+      dest.data[dstIdx + 3] = source.data[srcIdx + 3] ?? 255;
+    }
   }
 
-  return await pdf.save();
+  return PNG.sync.write(dest);
 }
 
 export async function processJob(jobId: Id<"jobs">): Promise<void> {
@@ -69,21 +54,40 @@ export async function processJob(jobId: Id<"jobs">): Promise<void> {
   try {
     await convex.mutation(api.jobs.markStarted, { workerSecret, jobId });
 
-    const images: Array<{ label: string; bytes: Uint8Array }> = [];
+    const pdf = await PDFDocument.create();
+    pdf.setTitle("Job POC image bundle");
+    pdf.setAuthor("job-poc Vercel Function");
+    pdf.setProducer("job-poc");
+    const font = await pdf.embedFont(StandardFonts.Helvetica);
+
     for (const [index, source] of PNG_SOURCES.entries()) {
       await convex.mutation(api.jobs.markDownloading, {
         workerSecret,
         jobId,
         downloadedCount: index + 1,
       });
-      images.push({
-        label: source.label,
-        bytes: await downloadPng(source.url),
+
+      const downloaded = await downloadPng(source.url);
+      const scaled = scalePngToTarget(downloaded, PNG_SIZE);
+      const png = await pdf.embedPng(scaled);
+      const page = pdf.addPage([PNG_SIZE, PNG_SIZE + 36]);
+      page.drawImage(png, {
+        x: 0,
+        y: 36,
+        width: PNG_SIZE,
+        height: PNG_SIZE,
+      });
+      page.drawText(`${source.label} (${PNG_SIZE}x${PNG_SIZE})`, {
+        x: 16,
+        y: 14,
+        size: 10,
+        font,
+        color: rgb(0.15, 0.16, 0.18),
       });
     }
 
     await convex.mutation(api.jobs.markBundling, { workerSecret, jobId });
-    const pdfBytes = await bundlePdf(images);
+    const pdfBytes = await pdf.save();
 
     await convex.mutation(api.jobs.markUploading, { workerSecret, jobId });
     const uploadUrl = await convex.mutation(api.jobs.generateUploadUrl, {

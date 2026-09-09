@@ -8,7 +8,7 @@ export async function createQueuedJob(): Promise<Id<"jobs">> {
   const convex = getConvexHttpClient();
   return await convex.mutation(api.jobs.create, {
     workerSecret: getWorkerSecret(),
-    title: "Bundle 10 PNGs into PDF",
+    title: "Bundle 30 5000x5000 PNGs into PDF",
     imageCount: PNG_SOURCES.length,
   });
 }

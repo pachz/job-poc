@@ -1,42 +1,24 @@
-export const PNG_SOURCES = [
-  {
-    label: "Asset 01",
-    url: "https://api.dicebear.com/9.x/shapes/png?seed=job-poc-01&size=1024&backgroundColor=0f172a",
-  },
-  {
-    label: "Asset 02",
-    url: "https://api.dicebear.com/9.x/shapes/png?seed=job-poc-02&size=1024&backgroundColor=1e1b4b",
-  },
-  {
-    label: "Asset 03",
-    url: "https://api.dicebear.com/9.x/shapes/png?seed=job-poc-03&size=1024&backgroundColor=134e4a",
-  },
-  {
-    label: "Asset 04",
-    url: "https://api.dicebear.com/9.x/shapes/png?seed=job-poc-04&size=1024&backgroundColor=7c2d12",
-  },
-  {
-    label: "Asset 05",
-    url: "https://api.dicebear.com/9.x/shapes/png?seed=job-poc-05&size=1024&backgroundColor=111827",
-  },
-  {
-    label: "Asset 06",
-    url: "https://api.dicebear.com/9.x/shapes/png?seed=job-poc-06&size=1024&backgroundColor=3b0764",
-  },
-  {
-    label: "Asset 07",
-    url: "https://api.dicebear.com/9.x/shapes/png?seed=job-poc-07&size=1024&backgroundColor=1a2e05",
-  },
-  {
-    label: "Asset 08",
-    url: "https://api.dicebear.com/9.x/shapes/png?seed=job-poc-08&size=1024&backgroundColor=4a044e",
-  },
-  {
-    label: "Asset 09",
-    url: "https://api.dicebear.com/9.x/shapes/png?seed=job-poc-09&size=1024&backgroundColor=1e3a8a",
-  },
-  {
-    label: "Asset 10",
-    url: "https://api.dicebear.com/9.x/shapes/png?seed=job-poc-10&size=1024&backgroundColor=422006",
-  },
+const BACKGROUNDS = [
+  "0f172a",
+  "1e1b4b",
+  "134e4a",
+  "7c2d12",
+  "111827",
+  "3b0764",
+  "1a2e05",
+  "4a044e",
+  "1e3a8a",
+  "422006",
 ] as const;
+
+export const PNG_COUNT = 30;
+export const PNG_SIZE = 5000;
+
+export const PNG_SOURCES = Array.from({ length: PNG_COUNT }, (_, index) => {
+  const n = String(index + 1).padStart(2, "0");
+  const backgroundColor = BACKGROUNDS[index % BACKGROUNDS.length];
+  return {
+    label: `Asset ${n}`,
+    url: `https://api.dicebear.com/9.x/shapes/png?seed=job-poc-${n}&size=${PNG_SIZE}&backgroundColor=${backgroundColor}`,
+  };
+});

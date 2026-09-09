@@ -62,8 +62,9 @@ export function JobsPage({ onLoggedOut }: { onLoggedOut: () => void }) {
         <div>
           <h2>Start a processing job</h2>
           <p>
-            This calls a Vercel Function. It downloads 10 hardcoded PNGs, stitches
-            them into a PDF, stores the file, and streams status through Convex.
+            This calls a Vercel Function. It downloads 30 PNGs, scales each to
+            5000×5000, stitches them into a PDF, stores the file, and streams
+            status through Convex.
           </p>
         </div>
         <button type="button" onClick={startJob} disabled={starting}>
@@ -77,7 +78,7 @@ export function JobsPage({ onLoggedOut }: { onLoggedOut: () => void }) {
         {jobs?.length === 0 ? (
           <div className="empty">
             <h2>No jobs yet</h2>
-            <p>Start one to watch a Vercel Function download, bundle, and upload a PDF.</p>
+            <p>Start one to watch a Vercel Function scale 30 PNGs to 5000×5000 and bundle a PDF.</p>
           </div>
         ) : null}
         {jobs?.map((job) => (
