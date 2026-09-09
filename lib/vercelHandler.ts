@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { waitUntil } from "@vercel/functions";
-import { routeApi } from "./apiRouter";
+import { routeApi } from "./apiRouter.js";
 
 function requestPath(req: VercelRequest): string {
   return new URL(req.url ?? "/", "http://localhost").pathname;

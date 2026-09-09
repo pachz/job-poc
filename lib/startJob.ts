@@ -1,8 +1,8 @@
-import { api } from "../convex/_generated/api";
+import { api } from "../convex/_generated/api.js";
 import type { Id } from "../convex/_generated/dataModel";
-import { getWorkerSecret } from "./auth";
-import { getConvexHttpClient } from "./convex";
-import { PNG_SOURCES } from "./pngSources";
+import { getWorkerSecret } from "./auth.js";
+import { getConvexHttpClient } from "./convex.js";
+import { PNG_SOURCES } from "./pngSources.js";
 
 export async function createQueuedJob(): Promise<Id<"jobs">> {
   const convex = getConvexHttpClient();

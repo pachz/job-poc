@@ -1,4 +1,4 @@
-import { SESSION_COOKIE } from "./auth";
+import { SESSION_COOKIE } from "./auth.js";
 
 export function readCookie(cookieHeader: string | undefined, name: string): string | undefined {
   if (!cookieHeader) {

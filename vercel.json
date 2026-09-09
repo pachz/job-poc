@@ -3,7 +3,8 @@
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/jobs/process.ts": {
+    "api/**/*.ts": {
+      "includeFiles": "{lib,convex/_generated}/**",
       "maxDuration": 60
     }
   }

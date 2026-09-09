@@ -3,10 +3,10 @@ import {
   createSessionToken,
   getAppPassword,
   isValidSessionToken,
-} from "./auth";
-import { readCookie, sessionCookieHeader } from "./cookies";
-import { processJob } from "./processJob";
-import { createQueuedJob } from "./startJob";
+} from "./auth.js";
+import { readCookie, sessionCookieHeader } from "./cookies.js";
+import { processJob } from "./processJob.js";
+import { createQueuedJob } from "./startJob.js";
 
 export type ApiResult = {
   status: number;
