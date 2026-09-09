@@ -1,6 +1,10 @@
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { assertWorkerSecret } from "./lib/workerAuth";
+
+const STALE_AFTER_MS = 120_000;
+const ACTIVE_STATUSES = ["queued", "downloading", "bundling", "uploading"] as const;
 
 const jobStatus = v.union(
   v.literal("queued"),
@@ -27,7 +31,41 @@ const jobDoc = v.object({
   createdAt: v.number(),
   startedAt: v.optional(v.number()),
   completedAt: v.optional(v.number()),
+  lastHeartbeatAt: v.optional(v.number()),
 });
+
+const WORKER_LOST_ERROR =
+  "The worker stopped reporting progress. The Vercel Function was likely killed after running out of memory or exceeding its time limit.";
+
+async function failStaleJobs(ctx: MutationCtx): Promise<number> {
+  const now = Date.now();
+  let failed = 0;
+
+  for (const status of ACTIVE_STATUSES) {
+    const jobs = await ctx.db
+      .query("jobs")
+      .withIndex("by_status", (q) => q.eq("status", status))
+      .take(50);
+
+    for (const job of jobs) {
+      const beat = job.lastHeartbeatAt ?? job.startedAt ?? job.createdAt;
+      if (now - beat < STALE_AFTER_MS) {
+        continue;
+      }
+
+      await ctx.db.patch("jobs", job._id, {
+        status: "failed",
+        message: "Vercel Function stopped",
+        error: WORKER_LOST_ERROR,
+        completedAt: now,
+        lastHeartbeatAt: now,
+      });
+      failed += 1;
+    }
+  }
+
+  return failed;
+}
 
 export const list = query({
   args: {},
@@ -53,6 +91,7 @@ export const create = mutation({
   returns: v.id("jobs"),
   handler: async (ctx, args) => {
     assertWorkerSecret(args.workerSecret);
+    const now = Date.now();
     return await ctx.db.insert("jobs", {
       title: args.title,
       status: "queued",
@@ -61,7 +100,8 @@ export const create = mutation({
       imageCount: args.imageCount,
       downloadedCount: 0,
       runtime: "vercel-function",
-      createdAt: Date.now(),
+      createdAt: now,
+      lastHeartbeatAt: now,
     });
   },
 });
@@ -78,11 +118,13 @@ export const markStarted = mutation({
     if (!job) {
       throw new Error("Job not found");
     }
+    const now = Date.now();
     await ctx.db.patch("jobs", args.jobId, {
       status: "downloading",
       progress: 5,
       message: "Vercel Function started",
-      startedAt: Date.now(),
+      startedAt: now,
+      lastHeartbeatAt: now,
     });
     return null;
   },
@@ -107,6 +149,28 @@ export const markDownloading = mutation({
       downloadedCount: args.downloadedCount,
       progress: Math.min(70, Math.round(10 + ratio * 60)),
       message: `Downloading PNG ${args.downloadedCount}/${job.imageCount}`,
+      lastHeartbeatAt: Date.now(),
+    });
+    return null;
+  },
+});
+
+export const heartbeat = mutation({
+  args: {
+    workerSecret: v.string(),
+    jobId: v.id("jobs"),
+    message: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    assertWorkerSecret(args.workerSecret);
+    const job = await ctx.db.get("jobs", args.jobId);
+    if (!job) {
+      throw new Error("Job not found");
+    }
+    await ctx.db.patch("jobs", args.jobId, {
+      lastHeartbeatAt: Date.now(),
+      ...(args.message !== undefined ? { message: args.message } : {}),
     });
     return null;
   },
@@ -128,6 +192,7 @@ export const markBundling = mutation({
       status: "bundling",
       progress: 80,
       message: "Bundling PNGs into a PDF",
+      lastHeartbeatAt: Date.now(),
     });
     return null;
   },
@@ -149,6 +214,7 @@ export const markUploading = mutation({
       status: "uploading",
       progress: 90,
       message: "Uploading PDF to storage",
+      lastHeartbeatAt: Date.now(),
     });
     return null;
   },
@@ -176,12 +242,14 @@ export const complete = mutation({
     if (!job) {
       throw new Error("Job not found");
     }
+    const now = Date.now();
     await ctx.db.patch("jobs", args.jobId, {
       status: "completed",
       progress: 100,
       message: "PDF ready",
       pdfStorageId: args.pdfStorageId,
-      completedAt: Date.now(),
+      completedAt: now,
+      lastHeartbeatAt: now,
     });
     return null;
   },
@@ -200,12 +268,30 @@ export const fail = mutation({
     if (!job) {
       throw new Error("Job not found");
     }
+    const now = Date.now();
     await ctx.db.patch("jobs", args.jobId, {
       status: "failed",
       message: "Vercel Function failed",
       error: args.error,
-      completedAt: Date.now(),
+      completedAt: now,
+      lastHeartbeatAt: now,
     });
     return null;
+  },
+});
+
+export const failStale = mutation({
+  args: {},
+  returns: v.number(),
+  handler: async (ctx) => {
+    return await failStaleJobs(ctx);
+  },
+});
+
+export const failStaleInternal = internalMutation({
+  args: {},
+  returns: v.number(),
+  handler: async (ctx) => {
+    return await failStaleJobs(ctx);
   },
 });

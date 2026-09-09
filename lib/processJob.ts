@@ -68,7 +68,17 @@ export async function processJob(jobId: Id<"jobs">): Promise<void> {
       });
 
       const downloaded = await downloadPng(source.url);
+      await convex.mutation(api.jobs.heartbeat, {
+        workerSecret,
+        jobId,
+        message: `Scaling PNG ${index + 1}/${PNG_SOURCES.length} to ${PNG_SIZE}x${PNG_SIZE}`,
+      });
       const scaled = scalePngToTarget(downloaded, PNG_SIZE);
+      await convex.mutation(api.jobs.heartbeat, {
+        workerSecret,
+        jobId,
+        message: `Embedding PNG ${index + 1}/${PNG_SOURCES.length}`,
+      });
       const png = await pdf.embedPng(scaled);
       const page = pdf.addPage([PNG_SIZE, PNG_SIZE + 36]);
       page.drawImage(png, {

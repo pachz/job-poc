@@ -22,5 +22,8 @@ export default defineSchema({
     createdAt: v.number(),
     startedAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
-  }).index("by_created", ["createdAt"]),
+    lastHeartbeatAt: v.optional(v.number()),
+  })
+    .index("by_created", ["createdAt"])
+    .index("by_status", ["status"]),
 });

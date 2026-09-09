@@ -1,6 +1,6 @@
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const STATUS_LABELS = {
   queued: "Queued",
@@ -22,8 +22,17 @@ function formatTime(timestamp: number): string {
 
 export function JobsPage({ onLoggedOut }: { onLoggedOut: () => void }) {
   const jobs = useQuery(api.jobs.list);
+  const failStale = useMutation(api.jobs.failStale);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void failStale();
+    const timer = window.setInterval(() => {
+      void failStale();
+    }, 15_000);
+    return () => window.clearInterval(timer);
+  }, [failStale]);
 
   async function startJob() {
     setStarting(true);
