@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "functions": {
+    "api/jobs/process.ts": {
+      "maxDuration": 60
+    }
+  }
+}

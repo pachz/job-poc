@@ -1,0 +1,274 @@
+:root {
+  --bg: #f3efe6;
+  --ink: #17140f;
+  --muted: #6d6558;
+  --card: #fffaf1;
+  --line: #ddd4c4;
+  --accent: #c45c26;
+  --accent-ink: #fffaf1;
+  --ok: #2f6f4e;
+  --bad: #9b2c2c;
+  --info: #2c4c7a;
+  --shadow: 0 18px 40px rgba(47, 39, 28, 0.08);
+  --font-sans: "Instrument Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(196, 92, 38, 0.12), transparent 28%),
+    linear-gradient(180deg, #f7f3ea 0%, var(--bg) 100%);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+p {
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 0.8rem 1.2rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+input {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.85rem 0.95rem;
+  margin-bottom: 1rem;
+}
+
+a {
+  color: inherit;
+}
+
+.eyebrow,
+.hint,
+.muted,
+dt {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lede,
+.job-message,
+.empty p,
+.start-panel p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.form-error {
+  color: var(--bad);
+  margin: 0 0 0.8rem;
+}
+
+.boot {
+  padding: 3rem;
+  text-align: center;
+}
+
+.auth-shell,
+.lab-shell {
+  width: min(920px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 4rem;
+}
+
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.auth-card,
+.panel,
+.job-card,
+.empty {
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  border-radius: 24px;
+}
+
+.auth-card {
+  width: min(420px, 100%);
+  padding: 2rem;
+}
+
+.auth-card h1,
+.lab-header h1 {
+  font-size: 2.3rem;
+  margin: 0.25rem 0 0.7rem;
+}
+
+.lab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.start-panel,
+.job-top,
+.job-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.start-panel,
+.job-card,
+.empty {
+  padding: 1.3rem 1.4rem;
+}
+
+.start-panel {
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.job-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.job-card h3 {
+  font-size: 1.2rem;
+}
+
+.status-pill {
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  background: #ece4d4;
+}
+
+.status-pill.status-completed,
+.job-card.status-completed {
+  box-shadow: 0 0 0 1px rgba(47, 111, 78, 0.12);
+}
+
+.status-pill.status-completed {
+  background: #dcecde;
+  color: var(--ok);
+}
+
+.status-pill.status-failed {
+  background: #f4d6d6;
+  color: var(--bad);
+}
+
+.status-pill.status-downloading,
+.status-pill.status-bundling,
+.status-pill.status-uploading {
+  background: #d9e4f4;
+  color: var(--info);
+}
+
+.progress-track {
+  height: 8px;
+  background: #efe6d6;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 0.9rem 0 1rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 240ms ease;
+}
+
+.job-meta {
+  margin: 0;
+}
+
+.job-meta div {
+  min-width: 90px;
+}
+
+.job-meta dd {
+  margin: 0.2rem 0 0;
+}
+
+.download {
+  display: inline-block;
+  margin-top: 1rem;
+  text-decoration: none;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.empty h2 {
+  margin-bottom: 0.4rem;
+}
+
+@media (max-width: 720px) {
+  .start-panel,
+  .job-top,
+  .lab-header {
+    flex-direction: column;
+  }
+
+  .job-meta {
+    flex-wrap: wrap;
+  }
+}
